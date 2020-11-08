@@ -42,34 +42,35 @@ package object scalashop extends BoxBlurKernelInterface {
   /** Computes the blurred RGBA value of a single pixel of the input image. */
   def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
 
-    // TODO implement using while loops
-    
-    var sumRed = 0
-    var sumGreen = 0
-    var sumBlue = 0
-    var sumAlpha = 0
-    var counter = 0
+    val xStart = clamp(x - radius, 0, src.width - 1)
+    val xEnd = clamp(x + radius, 0, src.width - 1)
+    val yStart = clamp(y - radius, 0, src.height - 1)
+    val yEnd = clamp(y + radius, 0, src.height - 1)
 
-    var travX = clamp(x - radius, 0, src.width)
+    var accX = xStart
+    var accY = yStart
+    var accR = 0
+    var accG = 0
+    var accB = 0
+    var accA = 0
+    var pixelsCounted = 0
 
-    while (travX <= clamp(x+radius, 0, src.width)) {
-      var travY = clamp(y-radius, 0, src.height)
-
-      while (travY <= clamp(y+radius, 0, src.height)) {
-        counter += 1
-        sumRed += red(src(travX, travY))
-        sumGreen += green(src(travX, travY))
-        sumBlue += blue(src(travX, travY))
-        sumAlpha += alpha(src(travX, travY))
+    while (accX <= xEnd) {
+      while (accY <= yEnd) {
+        val pixel = src(accX, accY)
+        accR += red(pixel)
+        accG += green(pixel)
+        accB += blue(pixel)
+        accA += alpha(pixel)
+        pixelsCounted += 1
+        accY += 1
       }
+      accX += 1
+      accY = yStart
     }
+    
 
-    sumRed = sumRed / counter
-    sumGreen = sumGreen / counter
-    sumBlue = sumBlue / counter
-    sumAlpha = sumAlpha / counter
-
-    rgba(sumRed, sumGreen, sumBlue, sumAlpha)
+    rgba(accR / pixelsCounted, accG / pixelsCounted, accB / pixelsCounted, accA / pixelsCounted)
 
   }
 
