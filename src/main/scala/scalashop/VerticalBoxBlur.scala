@@ -59,17 +59,14 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface {
    *  columns.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-    // TODO implement using the `task` construct and the `blur` method
-    val colsPerTask: Int = Math.max(src.width / numTasks, 1)
-    val startPoints = Range(0, src.width) by colsPerTask
+    val separateStrips = 0 to src.width by (src.width / numTasks max 1)
 
-    val tasks = startPoints.map( t => {
-      task {
-        blur(src, dst, t, t + colsPerTask, radius)
+    separateStrips.zip(separateStrips.tail)
+      .map { case (from, end) =>
+        task[Unit] {
+          blur(src, dst, from, end, radius)
+        }
       }
-    })
-
-    tasks.map(t => t.join() )
+      .foreach(_.join())
   }
-
 }
